@@ -33,24 +33,21 @@ function loadObjects, basePath, snapNum, gName, nName, fields=fields
   ; if fields specified, verify existence
   field_names = hdf5_dset_properties(f, gName, shapes=shapes, types=types)
   
-  if n_elements(fields) ne 0 then begin
-    foreach field,fields do $
-      if ~field_names.count(field) then $
-        message,'Group catalog does not have requested field ['+field+']'
-  endif
-  
   ; if fields not specified, load everything
   if n_elements(fields) eq 0 then fields = field_names
   
   ; loop over all requested fields
   foreach field,fields do begin
+    ; verify existence
+    if ~field_names.count(field) then $
+      message,'Group catalog does not have requested field ['+field+']'
+      
     ; replace local length with global
     shape = shapes[field]
     shape[-1] = result['count']
     
     ; allocate within return hash
     result[field] = make_array(shape, type=types[field])
-    
   endforeach
   
   h5f_close, f
@@ -70,17 +67,18 @@ function loadObjects, basePath, snapNum, gName, nName, fields=fields
     ; loop over each requested field
     foreach field,fields do begin
       ; read data local to the current file
-      shape = shapes[field]
-      data = hdf5_read_dataset_slice(f, gName+"/"+field, lonarr(n_elements(shape)), shape)
+      length = shapes[field]
+      start  = lonarr(n_elements(length))
+      data   = hdf5_read_dataset_slice(f, gName+"/"+field, start, length)
       
-      if n_elements(shape) eq 1 then $
-        result[field,wOffset:wOffset+shape[-1]-1] = data
-      if n_elements(shape) eq 2 then $
-        result[field,*,wOffset:wOffset+shape[-1]-1] = data
-          
+      ; save
+      if n_elements(length) eq 1 then $
+        result[field,wOffset:wOffset+length[-1]-1] = data
+      if n_elements(length) eq 2 then $
+        result[field,*,wOffset:wOffset+length[-1]-1] = data
     endforeach
     
-    wOffset += shape[-1]
+    wOffset += length[-1]
     
     h5f_close, f    
   endfor
@@ -167,7 +165,7 @@ function loadGroupcatSingle, basePath, snapNum, haloID=hID, subhaloID=shID
       start[-1]  = groupOffset
       length[-1] = 1
       
-      data  = hdf5_read_dataset_slice(f, gName+"/"+field, start, length)
+      data = hdf5_read_dataset_slice(f, gName+"/"+field, start, length)
       
       result[field] = data
     endforeach

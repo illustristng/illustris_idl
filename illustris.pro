@@ -133,3 +133,4 @@ end
 
 ; load other files
 @illustris_groupcat
+@illustris_snapshot
