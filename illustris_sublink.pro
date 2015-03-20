@@ -1,5 +1,5 @@
 ; Illustris Simulation: Public Data Release.
-; snapshot.pro: File I/O related to the Sublink merger tree files.
+; illustris_sublink.pro: File I/O related to the Sublink merger tree files.
 
 function sublinkPath, basePath, chunkNum=cn
   ; Return absolute path to a SubLink HDF5 file (modify as needed).
@@ -10,8 +10,8 @@ function sublinkPath, basePath, chunkNum=cn
   return, filePath  
 end
 
-function sublinkOffsets, basePath, snapNum, id
-  ; Handle offset loading for a SubLink merger tree cutout.
+function treeOffsets, basePath, snapNum, id, prefix, fields
+  ; Handle offset loading for a SubLink or LHaloTree merger tree cutout.
   compile_opt idl2, hidden, strictarr, strictarrsubs
   r = hash()
   
@@ -26,9 +26,6 @@ function sublinkOffsets, basePath, snapNum, id
   groupOffset = groupFileOffsets[fileNum]
   
   ; load the length (by type) of this group/subgroup from the group catalog
-  prefix = "Offsets/Subhalo_Sublink"
-  fields = ['RowNum','LastProgenitorID','SubhaloID']
-  
   f = h5f_open( gcPath(basePath,snapNum,chunkNum=fileNum) )
     ; read each single value (1d)
     foreach field,fields do $
@@ -43,7 +40,9 @@ function loadSublinkTree, basePath, snapNum, id, fields=fields, onlyMPB=onlyMPB
   compile_opt idl2, hidden, strictarr, strictarrsubs
   
   ; the tree is all subhalos between SubhaloID and LastProgenitorID
-  treeOff = sublinkOffsets(basePath,snapNum,id)
+  prefix    = "Offsets/Subhalo_Sublink"
+  offFields = ['RowNum','LastProgenitorID','SubhaloID']
+  treeOff   = treeOffsets(basePath,snapNum,id,prefix,offFields)
   
   rowStart = treeOff['RowNum']
   rowEnd   = treeOff['RowNum'] + (treeOff['LastProgenitorID'] - treeOff['SubhaloID'])
@@ -86,8 +85,7 @@ function loadSublinkTree, basePath, snapNum, id, fields=fields, onlyMPB=onlyMPB
     ; loop over each requested field
     foreach field,fields do begin
       ; verify existence
-      if ~field_names.count(field) then $
-        message,'SubLink tree does not have field ['+field+']'
+      if ~field_names.count(field) then message,'SubLink tree does not have field ['+field+']'
         
       ; read
       length = shapes[field]

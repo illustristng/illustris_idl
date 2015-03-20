@@ -1,5 +1,5 @@
 ; Illustris Simulation: Public Data Release.
-; snapshot.pro: File I/O related to the snapshot files.
+; illustris_snapshot.pro: File I/O related to the snapshot files.
 
 function snapPath, basePath, snapNum, chunkNum=cn
   ; Return absolute path to a group catalog HDF5 file (modify as needed).

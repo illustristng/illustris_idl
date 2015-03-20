@@ -1,5 +1,5 @@
 ; Illustris Simulation: Public Data Release.
-; groupcat.pro: File I/O related to the FoF and Subfind group catalogs.
+; illustris_groupcat.pro: File I/O related to the FoF and Subfind group catalogs.
 
 function gcPath, basePath, snapNum, chunkNum=cn
   ; Return absolute path to a group catalog HDF5 file (modify as needed).
