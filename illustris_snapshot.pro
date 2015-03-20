@@ -170,11 +170,10 @@ function getSnapOffsets, basePath, snapNum, id, type
     header = hdf5_all_attrs(f, "Header")
   h5f_close, f
   
-  groupFileOffsets = header['FileOffsets_'+type]
   r['snapOffsets'] = header['FileOffsets_Snap']
   
   ; calculate target groups file chunk which contains this id
-  groupFileOffsets = long(id) - groupFileOffsets
+  groupFileOffsets = long(id) - header['FileOffsets_'+type]
   fileNum = max( where(groupFileOffsets ge 0) )
   groupOffset = groupFileOffsets[fileNum]
   
