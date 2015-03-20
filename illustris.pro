@@ -1,5 +1,5 @@
 ; Illustris Simulation: Public Data Release.
-; (util.pro): Various helper functions, and load all functions.
+; illustris.pro (util): Various helper functions, and load all functions.
 
 function partTypeNum, PT
   ; Mapping between common names and numeric particle types.
@@ -68,7 +68,7 @@ function hdf5_dset_properties, file_obj, group_name, shapes=shapes, types=types
   ;    v is a vector containing the dataspace size (one integer per dimension)
   ;  types: a {k:v} pair for each dataset in the group
   ;    k is the dataset name
-  ;    v is the data type (?)
+  ;    v is the HDF5 data type mapped to an IDL 'type code'
   compile_opt idl2, hidden, strictarr, strictarrsubs
   
   shapes = hash()
@@ -138,3 +138,4 @@ end
 @illustris_groupcat
 @illustris_snapshot
 @illustris_sublink
+@illustris_lhalotree
