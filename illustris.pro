@@ -128,9 +128,13 @@ function hdf5_read_dataset_slice, file_obj, group_dataset_path, start, length
     h5s_close, s
   h5d_close, d
   
+  ; single element?
+  if n_elements(data) eq 1 then return, data[0]
+  
   return, data
 end
 
 ; load other files
 @illustris_groupcat
 @illustris_snapshot
+@illustris_sublink
