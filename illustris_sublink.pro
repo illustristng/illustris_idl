@@ -37,6 +37,7 @@ end
 
 function loadSublinkTree, basePath, snapNum, id, fields=fields, onlyMPB=onlyMPB
   ; Load portion of Sublink tree, for a given subhalo, in its existing flat format.
+  ; (optionally restricted to a subset fields).
   compile_opt idl2, hidden, strictarr, strictarrsubs
   
   ; the tree is all subhalos between SubhaloID and LastProgenitorID
