@@ -105,7 +105,7 @@ function loadHalos, basePath, snapNum, fields=fields
 end
 
 function loadHeader, basePath, snapNum, chunkNum=cn
-  ; Load the group catalog header.
+  ; Load the group catalog header (chunkNum=0 if not specified).
   compile_opt idl2, hidden, strictarr, strictarrsubs
   
   if n_elements(cn) eq 0 then cn = 0
@@ -135,8 +135,8 @@ function loadGroupcatSingle, basePath, snapNum, haloID=hID, subhaloID=shID
   if (n_elements(hID) eq 0 and n_elements(shID) eq 0) or (n_elements(hID) and n_elements(shID)) then $
     message,'Error: Must specify either haloID or subhaloID (and not both).'
 
-  if n_elements(hID)  gt 0 then gName = "Subhalo"
-  if n_elements(shID) gt 0 then gName = "Group"
+  if n_elements(hID)  gt 0 then gName = "Group"
+  if n_elements(shID) gt 0 then gName = "Subhalo"
   if n_elements(hID)  gt 0 then searchID = hID
   if n_elements(shID) gt 0 then searchID = shID
   

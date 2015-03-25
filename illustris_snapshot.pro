@@ -198,17 +198,21 @@ function getSnapOffsets, basePath, snapNum, id, type
 end
 
 function loadSubhalo, basePath, snapNum, id, partType, fields=fields
-  ; load subhalo length, compute offset, call loadSnapSubset
+  ; Load all particles/cells of one type for a specific subhalo
+  ; (optionally restricted to a subset fields).
   compile_opt idl2, hidden, strictarr, strictarrsubs
   
+  ; load subhalo length, compute offset, call loadSnapSubset
   subset = getSnapOffsets(basePath,snapNum,id,"Subhalo")
   return, loadSnapSubset(basePath,snapNum,partType,fields=fields,subset=subset)
 end
 
 function loadHalo, basePath, snapNum, id, partType, fields=fields
-  ; load halo length, compute offset, call loadSnapSubset
+  ; Load all particles/cells of one type for a specific halo
+  ; (optionally restricted to a subset fields).
   compile_opt idl2, hidden, strictarr, strictarrsubs
   
+  ; load halo length, compute offset, call loadSnapSubset
   subset = getSnapOffsets(basePath,snapNum,id,"Group")
   return, loadSnapSubset(basePath,snapNum,partType,fields=fields,subset=subset)
 end
