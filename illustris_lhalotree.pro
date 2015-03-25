@@ -6,7 +6,7 @@ function lhalotreePath, basePath, chunkNum=cn
   compile_opt idl2, hidden, strictarr, strictarrsubs
   
   if n_elements(cn) eq 0 then cn = 0
-  filePath = basePath + '/trees/treedata/trees_sf1_135.' + str(cn) + '.hdf5'  
+  filePath = basePath + '/trees/treedata/trees_sf1_135.' + str(cn) + '.hdf5' ; TODO
   return, filePath  
 end
 
@@ -104,11 +104,9 @@ function loadLHaloTree, basePath, snapNum, id, fields=fields, onlyMPB=onlyMPB
     
     result = hash()
     result['count'] = nRows
-    print, nRows
     
     ; walk through connectivity, one data field at a time
     foreach field,fields do begin
-      print,field
       ; allocate the data array in the sub-tree
       length = shapes[field]
       start  = lonarr(n_elements(length))

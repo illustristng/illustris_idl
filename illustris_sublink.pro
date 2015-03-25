@@ -59,7 +59,6 @@ function loadSublinkTree, basePath, snapNum, id, fields=fields, onlyMPB=onlyMPB
   
   ; load only main progenitor branch? in this case, get MainLeafProgenitorID now
   if keyword_set(onlyMPB) then begin
-    print,fileNum,fileOff
     f = h5f_open( sublinkPath(basePath,chunkNum=fileNum) )
       MainLeafProgenitorID = hdf5_read_dataset_slice(f, 'MainLeafProgenitorID', fileOff, 1)
     h5f_close, f
