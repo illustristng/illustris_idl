@@ -2,13 +2,13 @@
 ; illustris_snapshot.pro: File I/O related to the snapshot files.
 
 function snapPath, basePath, snapNum, chunkNum=cn
-  ; Return absolute path to a group catalog HDF5 file (modify as needed).
+  ; Return absolute path to a snapshot HDF5 file (modify as needed).
   compile_opt idl2, hidden, strictarr, strictarrsubs
   
   if n_elements(cn) eq 0 then cn = 0
   
-  gcPath = basePath + '/snapdir_' + string(snapNum,format='(I03)') + '/'
-  filePath = gcPath + 'snap_' + string(snapNum,format='(I03)')
+  snapPath = basePath + '/snapdir_' + string(snapNum,format='(I03)') + '/'
+  filePath = snapPath + 'snap_' + string(snapNum,format='(I03)')
   filePath += '.' + str(cn) + '.hdf5'
   
   return, filePath  
@@ -125,7 +125,7 @@ function loadSnapSubset, basePath, snapNum, partType, fields=fields, subset=subs
     print,'['+string(fileNum,format='(I3)')+'] off='+str(fileOff)+' read ['+str(numToReadLocal)+$
           '] of ['+str(numTypeLocal)+'] remaining = '+str(numToRead-numToReadLocal)
     
-    ; loop over each requesated field for this particle type
+    ; loop over each requested field for this particle type
     foreach field,fields do begin
       ; read data local to the current file
       length = shapes[field]

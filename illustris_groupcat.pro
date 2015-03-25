@@ -30,10 +30,9 @@ function loadObjects, basePath, snapNum, gName, nName, fields=fields
     return, result
   endif
   
-  ; if fields specified, verify existence
+  ; if fields not specified, load everything
   field_names = hdf5_dset_properties(f, gName, shapes=shapes, types=types)
   
-  ; if fields not specified, load everything
   if n_elements(fields) eq 0 then fields = field_names
   
   ; loop over all requested fields
@@ -119,7 +118,7 @@ function loadHeader, basePath, snapNum, chunkNum=cn
 end
 
 function loadGroupcat, basePath, snapNum
-  ; Load complete group catalog at once.
+  ; Load complete group catalog all at once.
   compile_opt idl2, hidden, strictarr, strictarrsubs
   
   r = hash()
@@ -165,9 +164,7 @@ function loadGroupcatSingle, basePath, snapNum, haloID=hID, subhaloID=shID
       start[-1]  = groupOffset
       length[-1] = 1
       
-      data = hdf5_read_dataset_slice(f, gName+"/"+field, start, length)
-      
-      result[field] = data
+      result[field] = hdf5_read_dataset_slice(f, gName+"/"+field, start, length)
     endforeach
     
   h5f_close, f
