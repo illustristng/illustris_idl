@@ -80,7 +80,6 @@ function loadSnapSubset, basePath, snapNum, partType, fields=fields, subset=subs
 
   ; loop over all requested fields
   foreach field,fields do begin
-    print,field
     ; verify existence
     if ~field_names.count(field) then $
       message,'Particle type ['+str(ptNum)+'] does not have field ['+field+']'
@@ -100,7 +99,6 @@ function loadSnapSubset, basePath, snapNum, partType, fields=fields, subset=subs
   origNumToRead = numToRead
   
   while numToRead gt 0 do begin
-    print,fileNum,numToRead
     f = h5f_open( snapPath(basePath,snapNum,chunkNum=fileNum) )
     
     header = hdf5_all_attrs(f, "Header")
@@ -122,8 +120,8 @@ function loadSnapSubset, basePath, snapNum, partType, fields=fields, subset=subs
     if fileOff + numToReadLocal gt numTypeLocal then $
       numToReadLocal = numTypeLocal - fileOff
       
-    print,'['+string(fileNum,format='(I3)')+'] off='+str(fileOff)+' read ['+str(numToReadLocal)+$
-          '] of ['+str(numTypeLocal)+'] remaining = '+str(numToRead-numToReadLocal)
+    ;print,'['+string(fileNum,format='(I3)')+'] off='+str(fileOff)+' read ['+str(numToReadLocal)+$
+    ;      '] of ['+str(numTypeLocal)+'] remaining = '+str(numToRead-numToReadLocal)
     
     ; loop over each requested field for this particle type
     foreach field,fields do begin
