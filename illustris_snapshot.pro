@@ -31,10 +31,13 @@ function getNumPart, header
   return, nPart
 end
 
-function loadSnapSubset, basePath, snapNum, partType, fields=fields, subset=subset
+function loadSnapSubset, basePath, snapNum, partType, fields=fields, subset=subset, sq=sq
   ; Load a subset of fields for all particles/cells of a given partType.
   ; If offset and length specified, load only that subset of the partType.
-  compile_opt idl2, hidden, strictarr, strictarrsubs  
+  ; If sq is True (default), return an array instead of a dict if n_elements(fields) eq 1.
+  compile_opt idl2, hidden, strictarr, strictarrsubs
+
+  if n_elements(sq) eq 0 then sq = 1 ; by default true
 
   ptNum = partTypeNum(partType)
   gName = "PartType" + str(ptNum)
@@ -61,7 +64,7 @@ function loadSnapSubset, basePath, snapNum, partType, fields=fields, subset=subs
   
   result['count'] = numToRead  
   if ~numToRead then begin
-    print, 'warning: no particles of requested type, empty return.'
+    ;print, 'warning: no particles of requested type, empty return.'
     return, result
   endif
   
@@ -106,9 +109,9 @@ function loadSnapSubset, basePath, snapNum, partType, fields=fields, subset=subs
     
     ; no particles of requested type in this file chunk?
     if ~(hdf5_dset_names(f, "/")).count(gName) then begin
-      if n_elements(subset) gt 0 then $
-        message,'Read error: subset read should be contiguous.'
+      h5f_close, f
       fileNum += 1
+      fileOff  = 0
       continue
     endif
     
@@ -153,7 +156,7 @@ function loadSnapSubset, basePath, snapNum, partType, fields=fields, subset=subs
     message,'Read ['+str(wOffset)+'] particles, but was expecting ['+str(origNumToRead)+']'
 
   ; only a single field? then return the array instead of a single item hash
-  if n_elements(fields) eq 1 then return, result[fields[0]]
+  if sq and n_elements(fields) eq 1 then return, result[fields[0]]
   
   return, result  
 end
@@ -163,15 +166,27 @@ function getSnapOffsets, basePath, snapNum, id, type
   compile_opt idl2, hidden, strictarr, strictarrsubs
   r = hash()
   
-  ; load groupcat chunk offsets from header of first file
-  f = h5f_open( gcPath(basePath,snapNum) )
+  ; old or new format
+  if strmatch(gcPath(basePath,snapNum), '*fof_subhalo*') then begin
+    ; use separate 'offsets_nnn.hdf5' files
+    f = h5f_open( offsetPath(basePath,snapNum) )
+    field_names = hdf5_dset_properties(f, "FileOffsets/", shapes=shapes)
+
+    groupFileOffsets = hdf5_read_dataset_slice(f, "FileOffsets/"+type, 0, shapes[type])
+    r['snapOffsets'] = hdf5_read_dataset_slice(f, "FileOffsets/SnapByType", [0,0], shapes['SnapByType'])
+    r['snapOffsets'] = transpose(r['snapOffsets']) ; consistency
+  endif else begin
+    ; load groupcat chunk offsets from header of first file
+    f = h5f_open( gcPath(basePath,snapNum) )
     header = hdf5_all_attrs(f, "Header")
+    groupFileOffsets = header['FileOffsets_'+type]
+    r['snapOffsets'] = header['FileOffsets_Snap']
+  endelse
+
   h5f_close, f
   
-  r['snapOffsets'] = header['FileOffsets_Snap']
-  
   ; calculate target groups file chunk which contains this id
-  groupFileOffsets = long(id) - header['FileOffsets_'+type]
+  groupFileOffsets = long(id) - groupFileOffsets
   fileNum = max( where(groupFileOffsets ge 0) )
   groupOffset = groupFileOffsets[fileNum]
   
@@ -187,9 +202,17 @@ function getSnapOffsets, basePath, snapNum, id, type
     length[-1] = 1
     
     r['lenType'] = hdf5_read_dataset_slice(f, type+"/"+type+"LenType", start, length)
-    
-    ; load the offset (by type) of this group/subgroup within the snapshot
+  h5f_close, f
+
+  ; old or new format: load the offset (by type) of this group/subgroup within the snapshot
+  if strmatch(gcPath(basePath,snapNum), '*fof_subhalo*') then begin
+    f = h5f_open( offsetPath(basePath,snapNum) )
+    r['offsetType'] = hdf5_read_dataset_slice(f, type+"/SnapByType", start, length)
+  endif else begin
+    f = h5f_open( gcPath(basePath,snapNum,chunkNum=fileNum) )
     r['offsetType'] = hdf5_read_dataset_slice(f, "Offsets/"+type+"_SnapByType", start, length)
+  endelse
+
   h5f_close, f
   
   return, r

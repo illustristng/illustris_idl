@@ -6,8 +6,12 @@ function lhalotreePath, basePath, chunkNum=cn
   compile_opt idl2, hidden, strictarr, strictarrsubs
   
   if n_elements(cn) eq 0 then cn = 0
-  filePath = basePath + '/trees/treedata/trees_sf1_135.' + str(cn) + '.hdf5' ; TODO
-  return, filePath  
+  filePath = '/trees/treedata/trees_sf1_135.' + str(cn) + '.hdf5'
+
+  if ~file_test(basePath + filePath) then $ ; new path scheme
+    filePath = '/../postprocessing/trees/LHaloTree/trees_sf1_099.' + str(cn) + '.hdf5'
+
+  return, basePath + filePath  
 end
 
 function singleNodeFlat, conn, index, data_in, data_out, count, onlyMPB, gdp
@@ -72,16 +76,21 @@ function loadLHaloTree, basePath, snapNum, id, fields=fields, onlyMPB=onlyMPB
   if n_elements(onlyMPB) eq 0 then onlyMPB = 0
   
   ; get offsets
-  prefix    = "Offsets/Subhalo_LHalo"
-  offFields = ['TreeFile','TreeIndex','TreeNum']
-  treeOff   = treeOffsets(basePath,snapNum,id,prefix,offFields)
+  prefix    = "Offsets/Subhalo_LHaloTree"
+  offFields = ['File','Index','Num']
+  treeOff   = treeOffsets(basePath,snapNum,id,'LHaloTree',prefix,offFields)
   
+  if treeOff['Num'] eq -1 then begin
+    print, 'Warning, empty return. Subhalo [' + str(id) +'] at snapNum [' + str(snapNum) + '] not in tree.'
+    return, []
+  endif
+
   ; config
-  gName = 'Tree' + str(treeOff['TreeNum']) ; group name containing this subhalo
+  gName = 'Tree' + str(treeOff['Num']) ; group name containing this subhalo
   nRows = !NULL ; we do not know in advance the size of the tree
   
   ; open
-  fTree = h5f_open( lhalotreePath(basePath,chunkNum=treeOff['TreeFile']) )
+  fTree = h5f_open( lhalotreePath(basePath,chunkNum=treeOff['File']) )
     ; if no fields requested, return all fields
     field_names = hdf5_dset_properties(fTree, gName, shapes=shapes, types=types)
   
@@ -100,7 +109,7 @@ function loadLHaloTree, basePath, snapNum, id, fields=fields, onlyMPB=onlyMPB
 
     ; determine sub-tree size with dummy walk
     dummy = intarr(n_elements(conn['FirstProgenitor']))
-    nRows = singleNodeFlat(conn, treeOff['TreeIndex'], dummy, dummy, 0, onlyMPB, 0)
+    nRows = singleNodeFlat(conn, treeOff['Index'], dummy, dummy, 0, onlyMPB, 0)
     
     result = hash()
     result['count'] = nRows
@@ -124,12 +133,12 @@ function loadLHaloTree, basePath, snapNum, id, fields=fields, onlyMPB=onlyMPB
         length[-1] = 1
         gdp = hash('dataset',gName+"/"+field, 'start',start, 'length',length)
         
-        count = singleNodeFlat(conn, treeOff['TreeIndex'], fTree, data, 0, onlyMPB, gdp)
+        count = singleNodeFlat(conn, treeOff['Index'], fTree, data, 0, onlyMPB, gdp)
       endif else begin
         ; pre-load all, walk in-memory (use unmodified length)
         full_data = hdf5_read_dataset_slice(fTree, gName+"/"+field, start, shapes[field])
 
-        count = singleNodeFlat(conn, treeOff['TreeIndex'], full_data, data, 0, onlyMPB, 0)
+        count = singleNodeFlat(conn, treeOff['Index'], full_data, data, 0, onlyMPB, 0)
       endelse
 
       ; save field

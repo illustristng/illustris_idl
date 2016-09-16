@@ -8,10 +8,20 @@ function gcPath, basePath, snapNum, chunkNum=cn
   if n_elements(cn) eq 0 then cn = 0
   
   gcPath = basePath + '/groups_' + string(snapNum,format='(I03)') + '/'
-  filePath = gcPath + 'groups_' + string(snapNum,format='(I03)')
-  filePath += '.' + str(cn) + '.hdf5'
+  filePath1 = gcPath + 'groups_' + string(snapNum,format='(I03)') + '.' + str(cn) + '.hdf5'
+  filePath2 = gcPath + 'fof_subhalo_tab_' + string(snapNum,format='(I03)') + '.' + str(cn) + '.hdf5'
   
-  return, filePath  
+  if file_test(filePath1) then $
+    return, filePath1
+
+  return, filePath2
+end
+
+function offsetPath, basePath, snapNum
+  ; Return absolute path to a separate offset file (modify as needed).
+  offsetPath = basePath + '../postprocessing/offsets/offsets_' + string(snapNum,format='(I03)') + '.hdf5'
+
+  return, offsetPath
 end
 
 function loadObjects, basePath, snapNum, gName, nName, fields=fields
@@ -141,11 +151,21 @@ function loadGroupcatSingle, basePath, snapNum, haloID=hID, subhaloID=shID
   if n_elements(shID) gt 0 then searchID = shID
   
   ; load groupcat offsets, calculate target file and offset
-  f = h5f_open( gcPath(basePath,snapNum) )
+  if strmatch(gcPath(basePath,snapNum), '*fof_subhalo*') then begin
+    ; use separate 'offsets_nnn.hdf5' files
+    f = h5f_open( offsetPath(basePath,snapNum) )
+    field_names = hdf5_dset_properties(f, "FileOffsets/", shapes=shapes)
+    offsets = hdf5_read_dataset_slice(f, "FileOffsets/"+gName, 0, shapes[gName])
+  endif else begin
+    ; use header of group catalog
+    f = h5f_open( gcPath(basePath,snapNum) )
     header = hdf5_all_attrs(f, "Header")
+    offsets = header['FileOffsets_'+gName]
+  endelse
+
   h5f_close, f
-  
-  offsets = searchID - header['FileOffsets_'+gName]
+
+  offsets = searchID - offsets
   fileNum = max( where(offsets ge 0) )
   groupOffset = offsets[fileNum]
   
