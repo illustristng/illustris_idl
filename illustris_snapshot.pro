@@ -207,6 +207,7 @@ function getSnapOffsets, basePath, snapNum, id, type
   ; old or new format: load the offset (by type) of this group/subgroup within the snapshot
   if strmatch(gcPath(basePath,snapNum), '*fof_subhalo*') then begin
     f = h5f_open( offsetPath(basePath,snapNum) )
+    start[-1] = id
     r['offsetType'] = hdf5_read_dataset_slice(f, type+"/SnapByType", start, length)
   endif else begin
     f = h5f_open( gcPath(basePath,snapNum,chunkNum=fileNum) )
