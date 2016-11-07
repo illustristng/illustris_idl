@@ -25,25 +25,24 @@ function treeOffsets, basePath, snapNum, id, treeName, prefix, offFields
     f = h5f_open( offsetPath(basePath,snapNum) )
     field_names = hdf5_dset_properties(f, "FileOffsets/", shapes=shapes)
     groupFileOffsets = hdf5_read_dataset_slice(f, "FileOffsets/Subhalo", 0, shapes['Subhalo'])
+    h5f_close, f
+
+    offsetFile = offsetPath(basePath,snapNum)
+    prefix     = "Subhalo/" + treeName + "/"
+
+    groupOffset = id
   endif else begin
     ; load groupcat chunk offsets from header of first file
     f = h5f_open( gcPath(basePath,snapNum) )
     header = hdf5_all_attrs(f, "Header")
     groupFileOffsets = header['FileOffsets_Subhalo']
-  endelse
+    h5f_close, f
 
-  h5f_close, f
+    ; calculate target groups file chunk which contains this id
+    groupFileOffsets = long(id) - groupFileOffsets
+    fileNum = max( where(groupFileOffsets ge 0) )
+    groupOffset = groupFileOffsets[fileNum]
 
-  ; calculate target groups file chunk which contains this id
-  groupFileOffsets = long(id) - groupFileOffsets
-  fileNum = max( where(groupFileOffsets ge 0) )
-  groupOffset = groupFileOffsets[fileNum]
-
-  ; old or new format
-  if strmatch(gcPath(basePath,snapNum), '*fof_subhalo*') then begin
-    offsetFile = offsetPath(basePath,snapNum)
-    prefix     = "Subhalo/" + treeName + "/"
-  endif else begin
     offsetFile = gcPath(basePath,snapNum,chunkNum=fileNum)
     ; prefix from input
   endelse
