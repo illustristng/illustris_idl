@@ -104,9 +104,6 @@ function loadSnapSubset, basePath, snapNum, partType, fields=fields, subset=subs
   while numToRead gt 0 do begin
     f = h5f_open( snapPath(basePath,snapNum,chunkNum=fileNum) )
     
-    header = hdf5_all_attrs(f, "Header")
-    field_names = hdf5_dset_properties(f, gName, shapes=shapes, types=types)
-    
     ; no particles of requested type in this file chunk?
     if ~(hdf5_dset_names(f, "/")).count(gName) then begin
       h5f_close, f
@@ -114,6 +111,9 @@ function loadSnapSubset, basePath, snapNum, partType, fields=fields, subset=subs
       fileOff  = 0
       continue
     endif
+
+    header = hdf5_all_attrs(f, "Header")
+    field_names = hdf5_dset_properties(f, gName, shapes=shapes, types=types)
     
     ; set local read length for this file chunk, truncate to be within the local size
     numTypeLocal = header['NumPart_ThisFile',ptNum]
