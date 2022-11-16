@@ -33,6 +33,9 @@ function loadObjects, basePath, snapNum, gName, nName, fields=fields
   header = hdf5_all_attrs(f, "Header")
   
   result = hash()
+
+  if ~header.count('N'+nName+'_Total') and nName eq 'subgroups' then nName = 'subhalos'
+
   result['count'] = header['N'+nName+'_Total']
   
   if ~result['count'] then begin

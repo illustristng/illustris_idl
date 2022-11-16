@@ -8,16 +8,21 @@ function snapPath, basePath, snapNum, chunkNum=cn
   if n_elements(cn) eq 0 then cn = 0
   
   snapPath = basePath + '/snapdir_' + string(snapNum,format='(I03)') + '/'
-  filePath = snapPath + 'snap_' + string(snapNum,format='(I03)')
-  filePath += '.' + str(cn) + '.hdf5'
-  
-  return, filePath  
+  filePath1 = snapPath + 'snap_' + string(snapNum,format='(I03)') + '.' + str(cn) + '.hdf5'
+  filePath2 = filePath1.Replace('/snap_', '/snapshot_')
+
+  if file_test(filePath1) then $
+    return, filePath1
+
+  return, filePath2  
 end
 
 function getNumPart, header
   ; Calculate number of particles of all types given a snapshot header.
   compile_opt idl2, hidden, strictarr, strictarrsubs
-  
+
+  if ~header.HasKey('NumPart_Total_HighWord') then return, header['NumPart_Total']
+
   nTypes = 6
   nPart  = ulon64arr(nTypes)
   
@@ -48,7 +53,7 @@ function loadSnapSubset, basePath, snapNum, partType, fields=fields, subset=subs
   
   result = hash()
   nPart = getNumPart(header)
-  
+
   ; decide global read size, starting file chunk, and starting file chunk offset
   if n_elements(subset) gt 0 then begin
     offsetsThisType = subset['offsetType',ptNum] - subset['snapOffsets',*,ptNum]
