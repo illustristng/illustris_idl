@@ -6,12 +6,16 @@ function lhalotreePath, basePath, chunkNum=cn
   compile_opt idl2, hidden, strictarr, strictarrsubs
   
   if n_elements(cn) eq 0 then cn = 0
-  filePath = '/trees/treedata/trees_sf1_135.' + str(cn) + '.hdf5'
+  filePaths = ['/trees/treedata/trees_sf1_135.' + str(cn) + '.hdf5', $
+               '/../postprocessing/trees/LHaloTree/trees_sf1_099.' + str(cn) + '.hdf5', $
+               '/../postprocessing/trees/LHaloTree/trees_sf1_080.' + str(cn) + '.hdf5' $
+              ]
 
-  if ~file_test(basePath + filePath) then $ ; new path scheme
-    filePath = '/../postprocessing/trees/LHaloTree/trees_sf1_099.' + str(cn) + '.hdf5'
+  foreach filePath, filePaths do begin
+    if file_test(basePath + filePath) then $
+      return, basePath + filePath
+  end
 
-  return, basePath + filePath  
 end
 
 function singleNodeFlat, conn, index, data_in, data_out, count, onlyMPB, gdp
