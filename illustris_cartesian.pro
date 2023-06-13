@@ -1,3 +1,5 @@
+; for THESAN only
+
 FUNCTION cartPath, basePath, cartNum, chunkNum=cn
   ; Return absolute path to a cartesian HDF5 file (modify as needed).
   
