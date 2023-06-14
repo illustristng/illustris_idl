@@ -79,6 +79,9 @@ function hdf5_dset_properties, file_obj, group_name, shapes=shapes, types=types
   
   for i=0,h5g_get_nmembers(file_obj,group_name)-1 do begin
     dataset_name = h5g_get_member_name(file_obj,group_name,i)
+    
+    if dataset_name eq 'Header' then continue
+
     fields.add, dataset_name
     
     ; shape and type
@@ -139,3 +142,4 @@ end
 @illustris_snapshot
 @illustris_sublink
 @illustris_lhalotree
+@illustris_cartesian
